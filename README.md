@@ -10,7 +10,7 @@ Win and lose conditions implemented.
 ### Run the executable: This will launch the game in your terminal.
 ### Choose difficulty: Select from predefined difficulty levels or customize the board size and mine count.
 ### Use the controls:
-    [WASD key]s: Move the cursor around the board.
+    [WASD keys]: Move the cursor around the board.
     [Spacebar]: Reveal a tile.
 ### Gameplay:
 Numbers on revealed tiles indicate the number of mines adjacent to them.
