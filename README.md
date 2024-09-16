@@ -26,5 +26,3 @@ The game ends when you either reveal all safe tiles (you win!) or hit a mine (yo
 ![alt text](image.png)
 ## Contributing
 Feel free to fork the repository and submit pull requests for any improvements or bug fixes.
-
-## WWW
