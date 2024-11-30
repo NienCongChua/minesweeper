@@ -11,12 +11,16 @@ public:
     int height, width;
     int cursorX = 0, cursorY = 0;
     int not_revealed, mines;
+    int marked_count = 0; // Đếm số ô đã được đánh dấu
     int** minemap;
     bool** revealed;
+    bool** marked; // Mảng lưu trạng thái đánh dấu
+
 public:
     void inc(int x, int y, int h, int w);
     void spawnmines(int h, int w, int minec);
     void reveal(int x, int y);
+    void toggle_mark(int x, int y); // Hàm đánh dấu hoặc bỏ đánh dấu
     void ingame_print();
     int controller();
     void failed();
@@ -32,7 +36,8 @@ public:
             std::cout << "NHAP SO LUONG BOM: ";
             std::cin >> minecount;
             system("cls");
-        }this->height = h, this->width = w; mines = minecount;
+        }
+        this->height = h, this->width = w; mines = minecount;
         if (h * w <= minecount * 4 || minecount <= 0) {
             minecount = int(h * w / 4);
             printf("KO CHOI DC DAU, SO LUONG BOM DAT THANH %d.\n", minecount);
@@ -40,28 +45,41 @@ public:
         not_revealed = h * w;
         minemap = new int* [h];
         revealed = new bool* [h];
+        marked = new bool* [h]; // Khởi tạo mảng marked
         for (int i = 0; i < h; ++i) {
             minemap[i] = new int[w];
             revealed[i] = new bool[w];
+            marked[i] = new bool[w]; // Khởi tạo
             std::fill(minemap[i], minemap[i] + w, 0);
             std::fill(revealed[i], revealed[i] + w, false);
+            std::fill(marked[i], marked[i] + w, false); // Đặt tất cả ô chưa được đánh dấu
         }
-    }
-    void print(UCHR m = 178) {
-        for (int i = 0; i < this->height; ++i) {
-            for (int j = 0; j < this->width; ++j) {
-                if (minemap[i][j] == -1) std::cout << m << " ";
-                else std::cout << minemap[i][j] << " ";
-            }
-            printf("\n");
-        }std::cout << "\n";
     }
     ~map() {
         for (int i = 0; i < this->height; ++i) {
-            delete this->minemap[i];
-        }delete this->minemap;
+            delete[] minemap[i];
+            delete[] revealed[i];
+            delete[] marked[i]; // Giải phóng mảng marked
+        }
+        delete[] minemap;
+        delete[] revealed;
+        delete[] marked;
     }
 };
+
+void map::toggle_mark(int x, int y) {
+    if (!revealed[y][x]) {
+        if (marked[y][x]) {
+            marked[y][x] = false;
+            --marked_count; // Bỏ đánh dấu
+        }
+        else {
+            marked[y][x] = true;
+            ++marked_count; // Đánh dấu
+        }
+    }
+}
+
 void map::spawnmines(int h, int w, int minec) {
     while (minec--) {
         int x = rand() % w, y = rand() % h;
@@ -109,61 +127,64 @@ void map::reveal(int x, int y) {
     }
     else return;
 }
+
 void map::ingame_print() {
-    UCHR m = 254, nr = 178;
+    UCHR m = 254, nr = 178, mark_symbol = '@';
     for (int i = 0; i < this->height; ++i) {
         for (int j = 0; j < this->width; ++j) {
             if (i == this->cursorY && j == this->cursorX) {
-                if (revealed[i][j] == true) {
-                    SetConsoleTextAttribute(hConsole, 6);
-                    std::cout << minemap[i][j] << " ";
-                    SetConsoleTextAttribute(hConsole, 7);
-                }
-                else {
-                    SetConsoleTextAttribute(hConsole, 6);
-                    std::cout << "+ ";
-                    SetConsoleTextAttribute(hConsole, 7);
-                }
+                SetConsoleTextAttribute(hConsole, 6);
+                std::cout << "+ ";
+                SetConsoleTextAttribute(hConsole, 7);
             }
-            else if (revealed[i][j] == true) {
+            else if (marked[i][j]) {
+                std::cout << mark_symbol << " "; // Hiển thị ô đánh dấu là '@'
+            }
+            else if (revealed[i][j]) {
                 if (minemap[i][j] == -1) std::cout << m << " ";
                 else std::cout << minemap[i][j] << " ";
             }
-            else std::cout << nr << " ";
+            else {
+                std::cout << nr << " ";
+            }
         }
-        printf("\n");
-    }std::cout << "\n";
+        std::cout << "\n";
+    }
+    std::cout << "\n";
 }
+
 int map::controller() {
     char cmd; bool need_to_spawn = true;
-    while (not_revealed != mines) {
+    while (not_revealed != mines || marked_count != mines) {
         cmd = _getch();
         system("cls");
         switch (cmd) {
-        case 'a': {
+        case 'a':
             cursorX = (cursorX == 0) ? 0 : (cursorX - 1);
             break;
-        }
-        case 'd': {
+        case 'd':
             cursorX = (cursorX == this->width - 1) ? cursorX : (cursorX + 1);
             break;
-        }
-        case 'w': {
+        case 'w':
             cursorY = (cursorY == 0) ? 0 : (cursorY - 1);
             break;
-        }
-        case 's': {
-            cursorY = (cursorY == this->width - 1) ? cursorY : (cursorY + 1);
+        case 's':
+            cursorY = (cursorY == this->height - 1) ? cursorY : (cursorY + 1);
             break;
-        }
-        case ' ': {
-            if (need_to_spawn == true) { spawnmines(this->height, this->width, this->mines); need_to_spawn = false; }
+        case ' ':
+            if (need_to_spawn) {
+                spawnmines(this->height, this->width, this->mines);
+                need_to_spawn = false;
+            }
             reveal(cursorX, cursorY);
             if (minemap[cursorY][cursorX] == -1) return 0;
             break;
-        }
+        case 'm':
+            toggle_mark(cursorX, cursorY);
+            break;
         }
         ingame_print();
+        if (marked_count == mines) return 1;
     }
     return 1;
 }
@@ -202,6 +223,7 @@ void map::succeed() {
     std::cout << "|                                         |\n";
     std::cout << "|--------NHAN PHIM BAT KI DE THOAT--------|\n";
     std::cout << "___________________________________________\n";
+    _getch();
     return;
 }
 int main() {
@@ -240,9 +262,9 @@ int main() {
     }
     system("cls");
     map mines(heigheight, width, minecount);
-    /*mines.ingame_print();
-    mines.print();*/
     mines.ingame_print();
+    /*mines.print();
+    mines.ingame_print();*/
     int RESULT = mines.controller();
     if (RESULT == 0) mines.failed();
     else mines.succeed();
