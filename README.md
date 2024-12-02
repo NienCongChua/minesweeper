@@ -26,5 +26,7 @@ The game ends when you either reveal all safe tiles (you win!) or hit a mine (yo
     [Spacebar]: Reveal tile
 ## Screenshots
 ![alt text](image.png)
+## Author
+[Richard Jacob](https://github.com/NienCongChua.git)
 ## Contributing
 Feel free to fork the repository and submit pull requests for any improvements or bug fixes.
