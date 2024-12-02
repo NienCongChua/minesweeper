@@ -4,6 +4,7 @@
 #include <ctime>
 #include <windows.h>
 #include <conio.h>
+
 typedef unsigned char UCHR;
 HANDLE hConsole = GetStdHandle(STD_OUTPUT_HANDLE);
 class map {
@@ -68,17 +69,24 @@ public:
 };
 
 void map::toggle_mark(int x, int y) {
+    int remaining_flags = mines - marked_count;
+
     if (!revealed[y][x]) {
         if (marked[y][x]) {
             marked[y][x] = false;
             --marked_count; // Bỏ đánh dấu
         }
-        else {
+        else if (remaining_flags > 0) { // Chỉ cho phép đánh dấu nếu còn cờ
             marked[y][x] = true;
             ++marked_count; // Đánh dấu
         }
+        else {
+            std::cout << "Không thể đánh dấu thêm! Hết cờ.\n";
+            Sleep(500); // Hiển thị thông báo ngắn trước khi tiếp tục
+        }
     }
 }
+
 
 void map::spawnmines(int h, int w, int minec) {
     while (minec--) {
@@ -128,6 +136,26 @@ void map::reveal(int x, int y) {
     else return;
 }
 
+void exit_game() {
+    system("cls");
+    system("color 0E"); // Màu vàng để làm nổi bật thông báo
+    std::cout << "___________________________________________\n";
+    std::cout << "|--------------- TAM BIET! ---------------|\n";
+    std::cout << "|                                         |\n";
+    std::cout << "|  CAM ON BAN DA CHOI MINESWEEPER!        |\n";
+    std::cout << "|-----------------------------------------|\n";
+    std::cout << "|     An phim bat ky de ket thuc...       |\n";
+    std::cout << "___________________________________________\n";
+    _getch(); // Chờ người chơi nhấn phím trước khi thoát
+    exit(0);  // Thoát chương trình
+}
+
+
+bool end(int value = 0) {
+    if (value = 0) return false;
+    return true;
+}
+
 void map::ingame_print() {
     UCHR m = 254, nr = 178, mark_symbol = '@';
     for (int i = 0; i < this->height; ++i) {
@@ -150,12 +178,16 @@ void map::ingame_print() {
         }
         std::cout << "\n";
     }
-    std::cout << "\n";
+    int remaining_flags = mines - marked_count;
+    std::cout << "\nSo co con lai: " << remaining_flags << "\n";
 }
 
 int map::controller() {
-    char cmd; bool need_to_spawn = true;
-    while (not_revealed != mines || marked_count != mines) {
+    char cmd;
+    bool need_to_spawn = true;
+
+    while (true) {
+        ingame_print();
         cmd = _getch();
         system("cls");
         switch (cmd) {
@@ -176,18 +208,35 @@ int map::controller() {
                 spawnmines(this->height, this->width, this->mines);
                 need_to_spawn = false;
             }
-            reveal(cursorX, cursorY);
-            if (minemap[cursorY][cursorX] == -1) return 0;
+            if (!marked[cursorY][cursorX]) { // Không cho phép mở ô đã được đánh dấu
+                reveal(cursorX, cursorY);
+                if (minemap[cursorY][cursorX] == -1) return 0; // Thua nếu chạm bom
+            }
             break;
         case 'm':
             toggle_mark(cursorX, cursorY);
             break;
         }
-        ingame_print();
-        if (marked_count == mines) return 1;
+
+        // Kiểm tra điều kiện thắng
+        if (marked_count == mines) {
+            bool all_correct = true;
+            for (int i = 0; i < height; ++i) {
+                for (int j = 0; j < width; ++j) {
+                    if (marked[i][j] && minemap[i][j] != -1) {
+                        all_correct = false;
+                        break;
+                    }
+                }
+                if (!all_correct) break;
+            }
+            if (all_correct) return 1; // Thắng nếu tất cả các cờ đúng vị trí bom
+        }
     }
-    return 1;
 }
+
+int start();
+
 void map::failed() {
     system("cls");
     system("color 04");
@@ -201,10 +250,22 @@ void map::failed() {
         printf("\n");
     }
     std::cout << "___________________________________________\n";
-    std::cout << "|------------ BAN DA THAT BAI ------------|\n";
-    std::cout << "|                                         |\n";
-    std::cout << "|--------NHAN PHIM BAT KI DE THOAT--------|\n";
+    std::cout << "|-------------BAN DA THAT BAI--------------|\n";
+    std::cout << "|  An phim 1 de choi lai.                  |\n";
+    std::cout << "|  An phim bat ky de thoat.                |\n";
     std::cout << "___________________________________________\n";
+    char tmp;
+    tmp = _getch();
+    switch (tmp)
+    {
+    case '1':
+        system("cls");
+        start();
+        break;
+    default:
+        exit_game();
+        break;
+    }
     return;
 }
 void map::succeed() {
@@ -219,14 +280,26 @@ void map::succeed() {
         printf("\n");
     }
     std::cout << "___________________________________________\n";
-    std::cout << "|--------------- THANH CONG --------------|\n";
-    std::cout << "|                                         |\n";
-    std::cout << "|--------NHAN PHIM BAT KI DE THOAT--------|\n";
+    std::cout << "|-------------BAN DA CHIEN THANG-----------|\n";
+    std::cout << "|  An phim 1 de choi lai.                  |\n";
+    std::cout << "|  An phim bat ky de thoat.                |\n";
     std::cout << "___________________________________________\n";
-    _getch();
-    return;
+    char tmp;
+    tmp = _getch();
+    switch (tmp)
+    {
+    case '1':
+        system("cls");
+        start();
+        break;
+    default:
+        exit_game();
+        break;
+    }
 }
-int main() {
+
+int start() {
+    SetConsoleTextAttribute(hConsole, 7);
     std::cout << "_______________________________________________________\n";
     std::cout << "|------------ MINESWEEPER CONSOLE EDITION ------------|\n";
     std::cout << "|HUONG DAN: ------------------------------------------|\n";
@@ -262,12 +335,16 @@ int main() {
     }
     system("cls");
     map mines(heigheight, width, minecount);
-    mines.ingame_print();
-    /*mines.print();
-    mines.ingame_print();*/
+    //mines.ingame_print();
     int RESULT = mines.controller();
     if (RESULT == 0) mines.failed();
     else mines.succeed();
     mines.~map();
+    system("cls");
+    return 0;
+}
+
+int main() {
+    start();
     return 0;
 }
