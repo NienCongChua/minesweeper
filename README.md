@@ -11,6 +11,7 @@ Win and lose conditions implemented.
 ### Choose difficulty: Select from predefined difficulty levels or customize the board size and mine count.
 ### Use the controls:
     [WASD keys]: Move the cursor around the board.
+    [M key]: Mark as boom.
     [Spacebar]: Reveal a tile.
 ### Gameplay:
 Numbers on revealed tiles indicate the number of mines adjacent to them.
@@ -21,8 +22,11 @@ The game ends when you either reveal all safe tiles (you win!) or hit a mine (yo
     [A]: Move cursor left
     [S]: Move cursor down
     [D]: Move cursor right
+    [M]: Mark as boom
     [Spacebar]: Reveal tile
 ## Screenshots
 ![alt text](image.png)
+## Author
+[Richard Jacob](https://github.com/NienCongChua/)
 ## Contributing
 Feel free to fork the repository and submit pull requests for any improvements or bug fixes.
