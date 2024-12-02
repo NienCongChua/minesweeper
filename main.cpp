@@ -81,8 +81,7 @@ void map::toggle_mark(int x, int y) {
             ++marked_count; // Đánh dấu
         }
         else {
-            std::cout << "Không thể đánh dấu thêm! Hết cờ.\n";
-            Sleep(500); // Hiển thị thông báo ngắn trước khi tiếp tục
+            
         }
     }
 }
@@ -316,6 +315,7 @@ int start() {
     std::cout << "|--- [1] DE VL: MAP 9X9, 10 BOM ----------------------|\n";
     std::cout << "|--- [2] BTHUONG: MAP 16X16, 40 BOM ------------------|\n";
     std::cout << "|--- [3] KHO: MAP 20X30, 99 BOM ----------------------|\n";
+    std::cout << "|--- [Q] THOAT CHUONG TRINH --------------------------|\n";
     std::cout << "|--- [PHIM BAT KI] CUSTOM ----------------------------|\n";
     std::cout << "_______________________________________________________\n";
     int cmd = _getch() - '0', heigheight, width, minecount;
@@ -323,6 +323,7 @@ int start() {
     case 1: { heigheight = width = 9, minecount = 10; break; }
     case 2: { heigheight = width = 16, minecount = 40; break; }
     case 3: { heigheight = 20, width = 30, minecount = 99; break; }
+    case 'q': { exit_game(); break; }
     default: {
         std::cout << "NHAP SO HANG: ";
         std::cin >> heigheight;
