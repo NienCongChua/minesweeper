@@ -42,6 +42,7 @@ public:
         if (h * w <= minecount * 4 || minecount <= 0) {
             minecount = int(h * w / 4);
             printf("KO CHOI DC DAU, SO LUONG BOM DAT THANH %d.\n", minecount);
+            mines = minecount;
         }
         not_revealed = h * w;
         minemap = new int* [h];
@@ -242,15 +243,15 @@ void map::failed() {
     UCHR nr = 178;
     for (int i = 0; i < this->height; ++i) {
         for (int j = 0; j < this->width; ++j) {
-            if (minemap[i][j] == -1) { std::cout << "X" << " "; }
+            if (minemap[i][j] == -1) { std::cout << "@" << " "; }
             else if (revealed[i][j] == true) { std::cout << minemap[i][j] << " "; }
-            else std::cout << nr << " ";
+            else { std::cout << nr << " ";}
         }
         printf("\n");
     }
     std::cout << "___________________________________________\n";
     std::cout << "|-------------BAN DA THAT BAI--------------|\n";
-    std::cout << "|  An phim 1 de choi lai.                  |\n";
+    std::cout << "|  An phim [1] de choi lai.                |\n";
     std::cout << "|  An phim bat ky de thoat.                |\n";
     std::cout << "___________________________________________\n";
     char tmp;
@@ -280,7 +281,7 @@ void map::succeed() {
     }
     std::cout << "___________________________________________\n";
     std::cout << "|-------------BAN DA CHIEN THANG-----------|\n";
-    std::cout << "|  An phim 1 de choi lai.                  |\n";
+    std::cout << "|  An phim [1] de choi lai.                |\n";
     std::cout << "|  An phim bat ky de thoat.                |\n";
     std::cout << "___________________________________________\n";
     char tmp;
@@ -304,6 +305,7 @@ int start() {
     std::cout << "|HUONG DAN: ------------------------------------------|\n";
     std::cout << "|--- [ADSW] DI CHUYEN --------------------------------|\n";
     std::cout << "|--- [SPACE] DAO -------------------------------------|\n";
+    std::cout << "|--- [M] DAT CO --------------------------------------|\n";
     std::cout << "|--- SO TRONG 1 O CHI RA SO BOM TRONG 8 O ------------|\n";
     std::cout << "|--- XUNG QUANH O DO ---------------------------------|\n";
     std::cout << "|-------------NHAN PHIM BAT KI DE DI TIEP-------------|\n";
