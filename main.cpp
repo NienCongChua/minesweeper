@@ -15,7 +15,8 @@ public:
     int marked_count = 0; // Đếm số ô đã được đánh dấu
     int** minemap;
     bool** revealed;
-    bool** marked; // Mảng lưu trạng thái đánh dấu
+    // Thay đổi kiểu dữ liệu của marked thành int để lưu trạng thái đánh dấu
+    int** marked; 
 
 public:
     void inc(int x, int y, int h, int w);
@@ -47,14 +48,14 @@ public:
         not_revealed = h * w;
         minemap = new int* [h];
         revealed = new bool* [h];
-        marked = new bool* [h]; // Khởi tạo mảng marked
+        marked = new int* [h]; // Khởi tạo mảng marked
         for (int i = 0; i < h; ++i) {
             minemap[i] = new int[w];
             revealed[i] = new bool[w];
-            marked[i] = new bool[w]; // Khởi tạo
+            marked[i] = new int[w]; // Khởi tạo
             std::fill(minemap[i], minemap[i] + w, 0);
             std::fill(revealed[i], revealed[i] + w, false);
-            std::fill(marked[i], marked[i] + w, false); // Đặt tất cả ô chưa được đánh dấu
+            std::fill(marked[i], marked[i] + w, 0); // Đặt tất cả ô chưa được đánh dấu
         }
     }
     ~map() {
@@ -70,20 +71,13 @@ public:
 };
 
 void map::toggle_mark(int x, int y) {
-    int remaining_flags = mines - marked_count;
-
-    if (!revealed[y][x]) {
-        if (marked[y][x]) {
-            marked[y][x] = false;
-            --marked_count; // Bỏ đánh dấu
-        }
-        else if (remaining_flags > 0) { // Chỉ cho phép đánh dấu nếu còn cờ
-            marked[y][x] = true;
-            ++marked_count; // Đánh dấu
-        }
-        else {
-            
-        }
+    // Thay đổi logic để xử lý 3 trạng thái
+    marked[y][x] = (marked[y][x] + 1) % 3;
+    if (marked[y][x] == 1) {
+        ++marked_count;
+    }
+    else if (marked[y][x] == 0){
+        --marked_count;
     }
 }
 
@@ -97,6 +91,7 @@ void map::spawnmines(int h, int w, int minec) {
     }
     return;
 }
+
 void map::inc(int x, int y, int h, int w) {
     for (int i = x - 1; i <= x + 1; ++i) {
         for (int j = y - 1; j <= y + 1; ++j) {
@@ -105,6 +100,7 @@ void map::inc(int x, int y, int h, int w) {
     }
     return;
 }
+
 void map::reveal(int x, int y) {
     revealed[y][x] = true; --not_revealed;
     if (x >= 0 && x < this->width && y >= 0 && y < this->height && minemap[y][x] == 0) {
@@ -157,7 +153,8 @@ bool end(int value = 0) {
 }
 
 void map::ingame_print() {
-    UCHR m = 254, nr = 178, mark_symbol = '@';
+    UCHR m = 254, nr = 178;
+    char mark_symbols[] = { ' ', '@', '?' }; // Mảng chứa các ký hiệu đánh dấu
     for (int i = 0; i < this->height; ++i) {
         for (int j = 0; j < this->width; ++j) {
             if (i == this->cursorY && j == this->cursorX) {
@@ -165,8 +162,8 @@ void map::ingame_print() {
                 std::cout << "+ ";
                 SetConsoleTextAttribute(hConsole, 7);
             }
-            else if (marked[i][j]) {
-                std::cout << mark_symbol << " "; // Hiển thị ô đánh dấu là '@'
+            else if (marked[i][j] > 0) {
+                std::cout << mark_symbols[marked[i][j]] << " "; // Hiển thị ô đánh dấu
             }
             else if (revealed[i][j]) {
                 if (minemap[i][j] == -1) std::cout << m << " ";
@@ -181,6 +178,7 @@ void map::ingame_print() {
     int remaining_flags = mines - marked_count;
     std::cout << "\nSo co con lai: " << remaining_flags << "\n";
 }
+
 
 int map::controller() {
     char cmd;
@@ -223,7 +221,7 @@ int map::controller() {
             bool all_correct = true;
             for (int i = 0; i < height; ++i) {
                 for (int j = 0; j < width; ++j) {
-                    if (marked[i][j] && minemap[i][j] != -1) {
+                    if (marked[i][j] == 1 && minemap[i][j] != -1) {
                         all_correct = false;
                         break;
                     }
